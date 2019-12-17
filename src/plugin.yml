@@ -1,0 +1,5 @@
+name: EconXPIntegrator
+author: Faw
+version: 1.0.0
+main: me.bottleofglass.econxpintegrator.Main
+depend: [Vault, CMI]

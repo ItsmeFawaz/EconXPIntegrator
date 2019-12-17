@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="EconXPIntegrator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/EconXPIntegrator_jar</output-path>
+    <root id="archive" name="EconXPIntegrator.jar">
+      <element id="module-output" name="EconXPIntegrator" />
+    </root>
+  </artifact>
+</component>
