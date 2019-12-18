@@ -44,4 +44,7 @@ public class Main extends JavaPlugin {
     public static Economy getEconomy() {
         return econ;
     }
+    public static Logger getLog() {
+        return log;
+    }
 }
