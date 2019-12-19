@@ -22,8 +22,10 @@ public class Main extends JavaPlugin {
         saveDefaultConfig();
         if(!(getConfig().getBoolean("integrated"))) {
             for(Player p : getServer().getOnlinePlayers()) {
-                double exp = econ.getBalance(p);
-                p.setTotalExperience((int) exp);
+                double balance = econ.getBalance(p);
+                p.setLevel(0);
+                p.setExp(0);
+                p.giveExp((int) balance);
             }
             getConfig().set("integrated", true);
         }
