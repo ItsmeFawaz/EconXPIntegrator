@@ -20,6 +20,7 @@ public class Main extends JavaPlugin {
             return;
         }
         saveDefaultConfig();
+        //first time run to sync XP with Balance
         if(!(getConfig().getBoolean("integrated"))) {
             for(Player p : getServer().getOnlinePlayers()) {
                 double balance = econ.getBalance(p);
