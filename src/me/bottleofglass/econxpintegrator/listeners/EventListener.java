@@ -4,6 +4,7 @@ import com.Zrips.CMI.events.CMIAnvilItemRenameEvent;
 import com.Zrips.CMI.events.CMIAnvilItemRepairEvent;
 import com.Zrips.CMI.events.CMIUserBalanceChangeEvent;
 import me.bottleofglass.econxpintegrator.Main;
+import me.bottleofglass.econxpintegrator.utils.Util;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,7 +13,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -21,8 +24,6 @@ public class EventListener implements Listener {
 
     Logger log = Main.getLog();
 
-    private static String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-
     Set<Player> set = new HashSet<>();
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -30,10 +31,16 @@ public class EventListener implements Listener {
         Player p = evt.getUser().getPlayer();
         if(set.contains(p)) {//List would contain the player if the Balance change was done by setMoney and hence cancel this event
             set.remove(p);
-            log.info("BalanceChangeEvent Ignored");
+            if (Main.isLogsEnabled) {
+                log.info(p.getName() + "'s BalanceChangeEvent Ignored");
+            }
+
         } else {
             //sets XP to balance
-            setPlayerExperience(p, evt.getTo());
+            Util.setPlayerExperience(p, evt.getTo());
+            if (Main.isLogsEnabled) {
+                log.info("");
+            }
         }
     }
     //updates balance whenever players get xp naturally
@@ -42,10 +49,14 @@ public class EventListener implements Listener {
 
         Player p = evt.getPlayer();
 
-        setMoney(p, (getPlayerExperience(p) + evt.getAmount()));
+        setMoney(p, (Util.getPlayerExperience(p) + evt.getAmount()));
         //logs
-        log.info(p.getName() + "'s balance changed to " + (getPlayerExperience(p) + evt.getAmount()) + "from " + getPlayerExperience(p) + "due to xp change(NATURAL)");
-        p.sendMessage(p.getName() + "'s balance changed to " + (getPlayerExperience(p) + evt.getAmount()) + "from " + getPlayerExperience(p) + "due to xp change(NATURAL)");
+        if (Main.isLogsEnabled) {
+            log.info(p.getName() + "'s balance changed to " + (Util.getPlayerExperience(p) + evt.getAmount()) + " from " + Util.getPlayerExperience(p) + "to match natural exp change");
+        }
+        if (Main.p.contains(p)) {
+            p.sendMessage(Util.msg(p.getName() + "'s balance changed to " + (Util.getPlayerExperience(p) + evt.getAmount()) + " from " + Util.getPlayerExperience(p) + "to match natural exp change"));
+        }
     }
     //updates balance upon item enchant
     @EventHandler
@@ -54,13 +65,16 @@ public class EventListener implements Listener {
         Player p = evt.getEnchanter();
 
         int newlevel = (p.getLevel() - (evt.whichButton()+1));
-        int newExperience = (levelToExp(newlevel) + (int) (deltaLevelToExp(newlevel) * p.getExp()));
+        int newExperience = (Util.levelToExp(newlevel) + (int) (Util.deltaLevelToExp(newlevel) * p.getExp()));
 
         setMoney(p, newExperience);
 
-        log.info(p.getName() + "'s balance changed to " +  newExperience +" from "+ getPlayerExperience(p) + "due to xp change(ENCHANT) by pressing" + evt.whichButton());
-
-        p.sendMessage(p.getName() + "'s balance changed to " +  newExperience +" from "+ getPlayerExperience(p) + "due to xp change(ENCHANT)");
+        if(Main.isLogsEnabled) {
+            log.info(p.getName() + "'s balance changed to " +  newExperience +" from "+ Util.getPlayerExperience(p) + " to match exp change from enchanting");
+        }
+        if(Main.p.contains(p)) {
+            p.sendMessage(Util.msg(p.getName() + "'s balance changed to " +  newExperience +" from "+ Util.getPlayerExperience(p) + " to match exp change from enchanting"));
+        }
     }
 
     //updates balance upon anvil repair
@@ -68,22 +82,30 @@ public class EventListener implements Listener {
     public void onAnvilRepair(CMIAnvilItemRepairEvent evt) {
         Player p = evt.getPlayer();
         int newlevel = p.getLevel() - evt.getRepairCost();
-        int newExperience = (levelToExp(newlevel) + (int) (deltaLevelToExp(newlevel) * p.getExp()));
+        int newExperience = (Util.levelToExp(newlevel) + (int) (Util.deltaLevelToExp(newlevel) * p.getExp()));
         setMoney(p, newExperience);
 
-        log.info(p.getName() + "'s balance changed to " +  newExperience + " from " + getPlayerExperience(p)+  "due to xp change(REPAIR)");
-        p.sendMessage(p.getName() + "'s balance changed to " +  newExperience+ " from "+ getPlayerExperience(p) + "due to xp change(REPAIR)");
+        if(Main.isLogsEnabled) {
+            log.info(p.getName() + "'s balance changed to " +  newExperience + " from " + Util.getPlayerExperience(p)+  "to match exp change from item repair");
+        }
+        if(Main.p.contains(p)) {
+            p.sendMessage(Util.msg(p.getName() + "'s balance changed to " +  newExperience + " from " + Util.getPlayerExperience(p)+  "to match exp change from item repair"));
+        }
     }
     //updates balance upon anvil rename
     @EventHandler
     public void onAnvilRename(CMIAnvilItemRenameEvent evt) {
         Player p = evt.getPlayer();
         int newlevel = p.getLevel() - evt.getCost();
-        int newExperience = (levelToExp(newlevel) + (int) (deltaLevelToExp(newlevel) * p.getExp()));
+        int newExperience = (Util.levelToExp(newlevel) + (int) (Util.deltaLevelToExp(newlevel) * p.getExp()));
         setMoney(p, newExperience);
 
-        log.info(p.getName() + "'s balance changed to " +  newExperience + " from " + getPlayerExperience(p)+  "due to xp change(REPAIR)");
-        p.sendMessage(p.getName() + "'s balance changed to " +  newExperience+ " from "+ getPlayerExperience(p) + "due to xp change(REPAIR)");
+        if(Main.isLogsEnabled) {
+            log.info(p.getName() + "'s balance changed to " +  newExperience + " from " + Util.getPlayerExperience(p)+  "to match exp change from item rename");
+        }
+        if (Main.p.contains(p)) {
+            p.sendMessage(Util.msg(p.getName() + "'s balance changed to " +  newExperience + " from " + Util.getPlayerExperience(p)+  "to match exp change from item rename"));
+        }
     }
     //catches player death and sets xp/balance to a percentage depending on permission
     @EventHandler
@@ -104,12 +126,109 @@ public class EventListener implements Listener {
         }
         int newmoney;
         if(percentage != -1) {
-            newmoney = getPlayerExperience(p) * percentage / 100;
-            double[] array = expToLevel(newmoney);
+            newmoney = Util.getPlayerExperience(p) * percentage / 100;
+            double[] array = Util.expToLevel(newmoney);
             evt.setNewLevel((int) array[0]);
             evt.setNewExp((int) array[1]);
+            setMoney(p, newmoney);
+            if (Main.p.contains(p)) {
+                p.sendMessage(Util.msg(p.getName() + "'s balance changed to " + percentage + "% of your previous balance as a result of death"));
+            }
+            if (Main.isLogsEnabled) {
+                log.info(p.getName() + "'s balance changed to " + percentage + "% of your previous balance as a result of death");
+            }
+
         } else {
             setMoney(p, 0);
+        }
+    }
+    @EventHandler
+    public void onCMIExpCommand(PlayerCommandPreprocessEvent evt) {
+        if(evt.isCancelled()) {
+            return;
+        }
+        Player p = evt.getPlayer();
+        String[] command = evt.getMessage().split(" ");
+        if (command[0].equalsIgnoreCase("cmi")) {
+            if(command[1].equalsIgnoreCase("exp")) {
+                if(command.length > 3) {
+                    if (Bukkit.getServer().getPlayer(command[2]) != null) {
+                        String subcmd = command[3];
+                        int amount = Integer.parseInt(command[4]);
+                        switch (subcmd){
+                            case "set":
+                                setMoney(p, amount);
+                                break;
+                            case "give":
+                                setMoney(p, Main.getEconomy().getBalance(p) + amount);
+                                break;
+                            case "take":
+                                setMoney(p, Main.getEconomy().getBalance(p) - amount);
+                                break;
+                            case "clear":
+                                setMoney(p, 0);
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        String subcmd = command[2];
+                        int amount = Integer.parseInt(command[3]);
+                        switch (subcmd){
+                            case "set":
+                                setMoney(p, amount);
+                                break;
+                            case "give":
+                                setMoney(p, Main.getEconomy().getBalance(p) + amount);
+                                break;
+                            case "take":
+                                setMoney(p, Main.getEconomy().getBalance(p) - amount);
+                                break;
+                            case "clear":
+                                setMoney(p, 0);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                }
+            }
+        } else if (command[0].equalsIgnoreCase("experience")) {
+            
+        }
+    }
+    @EventHandler
+    public void onServerCommand(ServerCommandEvent evt) {
+        if(evt.isCancelled()) {
+            return;
+        }
+        String[] command = evt.getCommand().split(" ");
+        if (command[0].equalsIgnoreCase("cmi")) {
+            if(command[1].equalsIgnoreCase("exp")) {
+                if(command.length > 3) {
+                    if (Bukkit.getPlayer(command[2]) == null) return;
+                    Player p = Bukkit.getPlayer(command[2]);
+                    String subcmd = command[3];
+                    int amount = Integer.parseInt(command[4]);
+                    switch (subcmd){
+                        case "set":
+                            setMoney(p, amount);
+                            break;
+                        case "give":
+                            setMoney(p, Main.getEconomy().getBalance(p) + amount);
+                            break;
+                        case "take":
+                            setMoney(p, Main.getEconomy().getBalance(p) - amount);
+                            break;
+                        case "clear":
+                            setMoney(p, 0);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
         }
     }
 
@@ -128,88 +247,6 @@ public class EventListener implements Listener {
         }
         return er.transactionSuccess();
     }
-    // total xp calculation based by lvl
-    public static int levelToExp(int level) {
-
-        if (level <= 15) {
-            return (int) (level * level + 6 * level);
-        } else if (level <= 30) {
-            return (int) (2.5 * level * level - 40.5 * level + 360);
-        } else {
-            return (int) (4.5 * level * level - 162.5 * level + 2220);
-        }
-    }
-    // xp calculation for one current lvl
-    public static int deltaLevelToExp(int level) {
-        if (version.contains("1_7")) {
-            if (level <= 15) {
-                return 17;
-            } else if (level <= 30) {
-                return 3 * level - 31;
-            } else {
-                return 7 * level - 155;
-            }
-        } else {
-            if (level <= 15) {
-                return 2 * level + 7;
-            } else if (level <= 30) {
-                return 5 * level - 38;
-            } else {
-                return 9 * level - 158;
-            }
-        }
-    }
-    // xp calculation for one current lvl
-    public static int currentlevelxpdelta(Player player) {
-        int levelxp = deltaLevelToExp(player.getLevel()) - ((levelToExp(player.getLevel()) + (int) (deltaLevelToExp(player.getLevel()) * player.getExp())) - levelToExp(player.getLevel()));
-        return levelxp;
-    }
-    public static int getPlayerExperience(Player player) {
-        int bukkitExp = (levelToExp(player.getLevel()) + (int) (deltaLevelToExp(player.getLevel()) * player.getExp()));
-        return bukkitExp;
-    }
-
-    public static void setPlayerExperience(Player p , double xp) {
-
-        p.setLevel(0);
-        p.setExp(0);
-        p.setTotalExperience(0);
-        p.giveExp((int) xp);
-    }
-    //turns players total xp to level and remaining xp
-    public static double[] expToLevel(double xp) {
-        int level = 0;
-        while (xp >= 0) {
-            if(level < 16) {
-                if((xp-(7+(level*2))) <= 0) {
-                    break;
-                }
-                xp = xp-(7+(level*2));
-                level++;
-            } else if (level < 32) {
-                if ((xp-((7+ (level*2) + (level-15)*5))) <= 0) {
-                    break;
-                }
-                xp = xp-((7 + (level*2)) + (level-15)*5);
-                level++;
-            } else {
-                if((xp-(7+((15*2) + (16 * 5) + ((level-31)*9)))) <= 0) {
-                    break;
-                }
-                xp = xp-(7+((15*2) + (16 * 5) + ((level-31)*9)));
-                level++;
-            }
-
-
-        }
-        double[] array = new double[2];
-        array[0] = level;
-        array[1] = xp;
-        return array;
-    }
-
-
-
 
 
 }
