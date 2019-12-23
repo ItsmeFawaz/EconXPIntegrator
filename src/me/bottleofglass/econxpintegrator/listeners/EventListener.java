@@ -15,6 +15,7 @@ import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
 import java.util.*;
@@ -195,7 +196,7 @@ public class EventListener implements Listener {
                 }
             }
         } else if (command[0].equalsIgnoreCase("experience")) {
-            
+
         }
     }
     @EventHandler
@@ -230,6 +231,11 @@ public class EventListener implements Listener {
                 }
             }
         }
+    }
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent evt) {
+        Player p = evt.getPlayer();
+        Util.setPlayerExperience(p, Main.getEconomy().getBalance(p));
     }
 
     //sets player money through single economy method
