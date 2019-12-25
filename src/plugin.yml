@@ -7,4 +7,8 @@ commands:
   econlogs:
     usage: "Usage: /econlogs enable/disable"
     description: enables player logs
-
+permissions:
+  #expecon.xppercentage.<1-100>
+  expecon.xppercentage.*:
+    description: Indicates the percentage of experience kept on death
+    default: false
