@@ -1,6 +1,5 @@
 package me.bottleofglass.econxpintegrator.utils;
 
-import me.bottleofglass.econxpintegrator.listeners.EventListener;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -51,7 +50,8 @@ public class Util {
         int bukkitExp = (levelToExp(player.getLevel()) + (int) (deltaLevelToExp(player.getLevel()) * player.getExp()));
         return bukkitExp;
     }
-
+    //Method breaks when used with ChestShop that sends 2 consecutive balance change events
+    @Deprecated
     public static void setPlayerExperience(Player p , double xp) {
 
         p.setLevel(0);
@@ -94,5 +94,26 @@ public class Util {
     public static String msg(String s) {
         String msg = ChatColor.translateAlternateColorCodes('&', "&b[&eEconXPIntegrator&b] ") + ChatColor.YELLOW + s;
         return msg;
+    }
+    public static int getExpToNextLevel(int level) {
+        int xp;
+        if (level < 16) {
+            xp = ((2*level) + 7);
+        } else if (level <31) {
+            xp = ((5*level)-38);
+        } else {
+            xp = ((9*level)-158);
+        }
+        return xp;
+    }
+    //brand new and improved xp setting method :D
+    public static void setTotalExp(Player p , double xp) {
+        double[] array = expToLevel(xp);
+        p.setLevel((int) array[0]);
+        float percentageToNextLevel = (float) (array[1] / p.getExpToLevel()); //divides the remaining xp by the amount of xp required to level up to get the percentage to next level
+        if (percentageToNextLevel > 1 && percentageToNextLevel < 1.1) { // slight up downs in calculations cause percentage to go a little higher than 1 and to prevent it sets it to 1
+            percentageToNextLevel = 1;
+        }
+        p.setExp( percentageToNextLevel);
     }
 }
