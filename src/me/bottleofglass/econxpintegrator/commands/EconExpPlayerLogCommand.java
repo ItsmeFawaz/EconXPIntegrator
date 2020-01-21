@@ -12,7 +12,6 @@ public class EconExpPlayerLogCommand implements CommandExecutor {
 
     public EconExpPlayerLogCommand(Main m) {
         main = m;
-        main.getCommand("econlogs").setExecutor(this);
     }
 
     @Override

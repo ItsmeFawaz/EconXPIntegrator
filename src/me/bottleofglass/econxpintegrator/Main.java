@@ -38,7 +38,7 @@ public class Main extends JavaPlugin {
         }
         isLogsEnabled = getConfig().getBoolean("console-logs");
         getServer().getPluginManager().registerEvents(new EventListener(), this);
-        new EconExpPlayerLogCommand(this);
+        this.getCommand("econlogs").setExecutor(new EconExpPlayerLogCommand(this));
 
     }
     private boolean setupEconomy() {

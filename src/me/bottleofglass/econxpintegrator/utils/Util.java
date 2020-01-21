@@ -111,9 +111,12 @@ public class Util {
         double[] array = expToLevel(xp);
         p.setLevel((int) array[0]);
         float percentageToNextLevel = (float) (array[1] / p.getExpToLevel()); //divides the remaining xp by the amount of xp required to level up to get the percentage to next level
-        if (percentageToNextLevel > 1 && percentageToNextLevel < 1.1) { // slight up downs in calculations cause percentage to go a little higher than 1 and to prevent it sets it to 1
-            percentageToNextLevel = 1;
+        if (percentageToNextLevel > 1) { // slight up downs in calculations cause percentage to go a little higher than 1 and to prevent it sets it to 1
+            double exp = array[1] - p.getExpToLevel();
+            p.setLevel(p.getLevel()+1);
+            p.setExp((float) (exp / p.getExpToLevel()));
+        } else {
+            p.setExp( percentageToNextLevel);
         }
-        p.setExp( percentageToNextLevel);
     }
 }

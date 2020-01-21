@@ -5,6 +5,10 @@ main: me.bottleofglass.econxpintegrator.Main
 depend: [Vault, CMI]
 commands:
   econlogs:
-    usage: "Usage: /econlogs enable/disable"
     description: enables player logs
-    
+    usage: "Usage: /econlogs enable/disable"
+permissions:
+  #expecon.xppercentage.<1-100>
+  expecon.xppercentage.*:
+    description: Indicates the percentage of experience kept on death
+    default: false
