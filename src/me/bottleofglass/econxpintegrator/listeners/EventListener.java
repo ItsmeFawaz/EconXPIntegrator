@@ -30,7 +30,7 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBalanceChange(CMIUserBalanceChangeEvent evt) { //Gets balance change and sets XP according to that
-        Player p = evt.getUser().getPlayer();
+        Player p = Bukkit.getPlayerExact(evt.getUser().getDisplayName());
         if(set.contains(p)) {//List would contain the player if the Balance change was done by setMoney and hence cancel this event
             set.remove(p);
             if (Main.isLogsEnabled) {
