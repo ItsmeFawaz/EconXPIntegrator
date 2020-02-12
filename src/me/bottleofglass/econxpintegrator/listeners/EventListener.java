@@ -18,25 +18,27 @@ import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class EventListener implements Listener {
 
     Logger log = Main.getLog();
 
-    Set<Player> set = new HashSet<>();
+    HashMap<Player, Integer > map  = new HashMap<>();
+    List<Player> list = new ArrayList<>();
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH,ignoreCancelled = true)
     public void onBalanceChange(CMIUserBalanceChangeEvent evt) { //Gets balance change and sets XP according to that
-        Player p = Bukkit.getPlayerExact(evt.getUser().getDisplayName());
-        if(set.contains(p)) {//List would contain the player if the Balance change was done by setMoney and hence cancel this event
-            set.remove(p);
+        Player p = evt.getUser().getPlayer();
+        if((!map.isEmpty()) && map.containsKey(p)) {//List would contain the player if the Balance change was done by setMoney and hence cancel this event
+            map.remove(p, evt.getTo());
             if (Main.isLogsEnabled) {
                 log.info(p.getName() + "'s BalanceChangeEvent Ignored");
-            }
 
+            }
         } else {
             //sets XP to balance
             Util.setTotalExp(p, evt.getTo());
@@ -48,12 +50,11 @@ public class EventListener implements Listener {
         }
     }
     //updates balance whenever players get xp naturally
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH,ignoreCancelled = true)
     public void onExpChange(PlayerExpChangeEvent evt) {
-
         Player p = evt.getPlayer();
 
-        setMoney(p, (Util.getPlayerExperience(p) + evt.getAmount()));
+        setMoney(p, Util.getPlayerExperience(p) + evt.getAmount());
         //logs
         if (Main.isLogsEnabled) {
             log.info(p.getName() + "'s balance changed to " + (Util.getPlayerExperience(p) + evt.getAmount()) + " from " + Util.getPlayerExperience(p) + "to match natural exp change");
@@ -242,17 +243,22 @@ public class EventListener implements Listener {
     //sets player money through single economy method
     public boolean setMoney(Player p , double value) {
         double balance = Main.getEconomy().getBalance(p);
-        EconomyResponse er;
+        EconomyResponse er = null;
         if (value > balance) {
             er = Main.getEconomy().depositPlayer(p, (value - balance));
-            set.add(p);
         } else if (value < balance) {
             er = Main.getEconomy().withdrawPlayer(p, (balance - value));
-            set.add(p);
         } else {
             return true;
         }
-        return er.transactionSuccess();
+        if (er != null && er.transactionSuccess()) {
+            map.put(p, (int) value);
+            return er.transactionSuccess();
+        } else {
+            return true;
+        }
+
+
     }
 
 
